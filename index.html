@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cloud Mining Dashboard</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="app">
+        <header>
+            <h2 id="user-name">مرحباً..</h2>
+            <div class="status">الحالة: <span class="active">نشط 🟢</span></div>
+        </header>
+
+        <section class="balance-card">
+            <p>رصيد التعدين الحالي</p>
+            <h1 id="balance">0.00000000</h1>
+            <span class="currency">BTC</span>
+        </section>
+
+        <section class="stats">
+            <div class="stat-box">
+                <span>قوة التعدين</span>
+                <p id="hashrate">15.5 TH/s</p>
+            </div>
+            <div class="stat-box">
+                <span>الربح اليومي</span>
+                <p id="daily-profit">0.00012 BTC</p>
+            </div>
+        </section>
+
+        <button class="main-btn" onclick="withdraw()">سحب الأرباح 💳</button>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
+
