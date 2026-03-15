@@ -3,38 +3,157 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cloud Mining Dashboard</title>
+    <title>Cloud Mining Pro</title>
+    
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <link rel="stylesheet" href="style.css">
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <style>
+        /* تصميم عصري للواجهة */
+        body {
+            background-color: #0f172a;
+            color: white;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        header {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        #user-name {
+            font-size: 1.2rem;
+            margin: 0;
+            color: #3b82f6;
+        }
+
+        .status {
+            background: #1e293b;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            border: 1px solid #334155;
+        }
+
+        .balance-card {
+            background: linear-gradient(145deg, #1e293b, #0f172a);
+            width: 100%;
+            padding: 40px 20px;
+            border-radius: 24px;
+            text-align: center;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            border: 1px solid #334155;
+            margin-bottom: 25px;
+        }
+
+        .balance-card p {
+            color: #94a3b8;
+            margin-bottom: 10px;
+            letter-spacing: 1px;
+        }
+
+        #balance {
+            font-size: 3rem;
+            margin: 0;
+            color: #f59e0b; /* لون ذهبي للبيتكوين */
+            font-weight: bold;
+        }
+
+        .currency {
+            color: #f59e0b;
+            font-size: 1.2rem;
+            display: block;
+            margin-top: 5px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            width: 100%;
+        }
+
+        .stat-box {
+            background: #1e293b;
+            padding: 20px;
+            border-radius: 16px;
+            text-align: center;
+            border: 1px solid #334155;
+        }
+
+        .stat-box span {
+            display: block;
+            color: #94a3b8;
+            font-size: 0.8rem;
+            margin-bottom: 8px;
+        }
+
+        .stat-box p {
+            margin: 0;
+            font-weight: bold;
+            color: #e2e8f0;
+        }
+
+        .withdraw-btn {
+            width: 100%;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 18px;
+            border-radius: 16px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin-top: 30px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .withdraw-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* أنيميشن خفيف للرصيد */
+        #balance {
+            transition: all 0.3s ease;
+        }
+    </style>
 </head>
 <body>
-    <div id="app">
-        <header>
-            <h2 id="user-name">مرحباً..</h2>
-            <div class="status">الحالة: <span class="active">نشط 🟢</span></div>
-        </header>
 
-        <section class="balance-card">
-            <p>رصيد التعدين الحالي</p>
-            <h1 id="balance">0.00000000</h1>
-            <span class="currency">BTC</span>
-        </section>
+    <header>
+        <h2 id="user-name">تحميل..</h2>
+        <div class="status">التعدين: <span style="color: #22c55e;">نشط ●</span></div>
+    </header>
 
-        <section class="stats">
-            <div class="stat-box">
-                <span>قوة التعدين</span>
-                <p id="hashrate">15.5 TH/s</p>
-            </div>
-            <div class="stat-box">
-                <span>الربح اليومي</span>
-                <p id="daily-profit">0.00012 BTC</p>
-            </div>
-        </section>
-
-        <button class="main-btn" onclick="withdraw()">سحب الأرباح 💳</button>
+    <div class="balance-card">
+        <p>الرصيد المتاح للسحب</p>
+        <h1 id="balance">0.00000000</h1>
+        <span class="currency">BTC</span>
     </div>
 
+    <div class="stats-grid">
+        <div class="stat-box">
+            <span>قوة الهاش</span>
+            <p>128.5 TH/s</p>
+        </div>
+        <div class="stat-box">
+            <span>الربح اليومي</span>
+            <p>0.00041 BTC</p>
+        </div>
+    </div>
+
+    <button class="withdraw-btn" onclick="requestWithdrawal()">سحب الأرباح 💳</button>
+
     <script src="script.js"></script>
+
 </body>
 </html>
-
