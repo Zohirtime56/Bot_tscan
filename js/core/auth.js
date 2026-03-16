@@ -1,64 +1,42 @@
 // js/core/auth.js
-
 async function authenticateUser() {
+    console.log("بدء عملية التحقق...");
     const tg = window.Telegram.WebApp;
-    tg.ready();
-    
     const user = tg.initDataUnsafe.user;
+
     if (!user) {
-        console.error("هذا التطبيق يعمل داخل تليجرام فقط.");
+        console.error("فشل جلب بيانات تليجرام");
+        document.getElementById('user-name').innerText = "خطأ: افتح من تليجرام";
         return null;
     }
 
-    // استخراج معرف الشخص الداعي من رابط البوت (start_param)
-    // الرابط يكون عادة: t.me/bot?start=123456
-    const startParam = tg.initDataUnsafe.start_param;
-    const referrerId = startParam ? parseInt(startParam) : null;
-
-    // محاولة جلب المستخدم من قاعدة البيانات
-    let { data: dbUser, error } = await window.supabaseClient
+    // محاولة جلب المستخدم من Supabase
+    const { data, error } = await window.supabaseClient
         .from('users')
         .select('*')
         .eq('id', user.id)
         .single();
 
-    if (error || !dbUser) {
-        // إذا كان المستخدم جديداً، نقوم بإنشائه
-        console.log("مستخدم جديد، جاري الإنشاء...");
-        
-        const newUser = {
-            id: user.id,
-            username: user.username || user.first_name,
-            first_name: user.first_name,
-            referred_by: referrerId !== user.id ? referrerId : null, // منع المستخدم من دعوة نفسه
-            ram_balance: 0,
-            z_balance: 0,
-            mining_rate: 0.00000001 // السرعة الافتراضية
-        };
-
-        const { data, error: insertError } = await window.supabaseClient
-            .from('users')
-            .insert([newUser])
-            .select()
-            .single();
-
-        if (insertError) {
-            console.error("خطأ في إنشاء المستخدم:", insertError);
-            return null;
-        }
-
-        // إذا كان هناك داعي، نزيد عدد إحالاته (اختياري في هذه المرحلة)
-        if (referrerId) {
-            updateReferrerCount(referrerId);
-        }
-
-        dbUser = data;
+    if (error) {
+        console.log("مستخدم جديد، جاري التسجيل...");
+        // كود إنشاء مستخدم جديد (الذي كتبناه سابقاً)
+        return await registerNewUser(user); 
     }
 
-    console.log("تم التحقق بنجاح:", dbUser.username);
-    return dbUser;
+    console.log("تم جلب بيانات المستخدم بنجاح:", data);
+    return data;
 }
 
-async function updateReferrerCount(refId) {
-    await window.supabaseClient.rpc('increment_referral_count', { row_id: refId });
-          }
+async function registerNewUser(tgUser) {
+    const newUser = {
+        id: tgUser.id,
+        username: tgUser.username || tgUser.first_name,
+        ram_balance: 0,
+        mining_rate: 0.000001,
+        last_claim_time: new Date().toISOString()
+    };
+    const { data, error } = await window.supabaseClient.from('users').insert([newUser]).select().single();
+    return data;
+}
+
+window.authenticateUser = authenticateUser;
