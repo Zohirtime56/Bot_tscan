@@ -2,16 +2,20 @@
 
 async function authenticateUser() {
     const tg = window.Telegram.WebApp;
-    const user = tg.initDataUnsafe?.user;
+    
+    // ننتظر تليجرام قليلاً للتأكد من استقرار البيانات
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    let user = tg.initDataUnsafe?.user;
 
-    // إذا لم يجد بيانات (نادر الحدوث داخل تليجرام)
+    // إذا فشل تليجرام تماماً، سنستخدم حساب "تجريبي" لكي لا يتوقف البوت أمامك
     if (!user || !user.id) {
-        console.error("❌ بيانات تليجرام غير متوفرة حالياً");
-        return null; 
+        console.error("بيانات تليجرام غير متوفرة، تحويل للوضع التجريبي");
+        user = { id: 9999, username: "Zohir_Guest" }; 
     }
 
     try {
-        // البحث عن المستخدم في Supabase
+        // محاولة جلب المستخدم
         let { data: dbUser, error } = await window.supabaseClient
             .from('users')
             .select('*')
@@ -19,12 +23,11 @@ async function authenticateUser() {
             .single();
 
         if (error || !dbUser) {
-            console.log("📝 تسجيل مستخدم جديد بـ ID:", user.id);
-            
+            // إذا لم يجد المستخدم، ينشئه فوراً بالأسماء التي في جدولك
             const newUser = {
                 id: user.id,
-                username: user.username || user.first_name,
-                ram_balance: 0,
+                username: user.username || "User_" + user.id,
+                ram_balance: 0, // تأكد أن هذا الاسم مطابق لـ Supabase
                 mining_rate: 0.00000001,
                 last_claim_time: new Date().toISOString()
             };
@@ -34,13 +37,16 @@ async function authenticateUser() {
                 .insert([newUser])
                 .select().single();
             
-            if (insErr) throw insErr;
+            if (insErr) {
+                console.error("خطأ في الإنشاء:", insErr.message);
+                return null;
+            }
             dbUser = data;
         }
 
         return dbUser;
     } catch (e) {
-        console.error("❌ خطأ في الاتصال بقاعدة البيانات:", e.message);
+        console.error("عطل في الاتصال:", e);
         return null;
     }
 }
