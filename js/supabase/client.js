@@ -1,15 +1,16 @@
 // js/supabase/client.js
 
-// الرابط الخاص بمشروعك على Supabase
 const supabaseUrl = 'https://ldvakoamwgplowlgyexqs.supabase.co';
-
-// مفتاح Anon Key الذي أرسلته لي
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxkdmFrb2Ftd2dwbG93bGd5eHFzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM1NjA2ODMsImV4cCI6MjA4OTEzNjY4M30.SbOS7LDPcT9gDZa7QxITcFQVMf5XoJWxx5aQuTTYmY0';
 
-// إنشاء اتصال العميل
+// التأكد من أن مكتبة Supabase محملة قبل البدء
+if (typeof supabase === 'undefined') {
+    console.error("❌ مكتبة Supabase لم يتم تحميلها من الـ CDN!");
+}
+
 const _supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
-// تصدير العميل عالمياً (Global) ليكون متاحاً لجميع ملفات الـ JS الأخرى
+// تصدير الكليانت عالمياً
 window.supabaseClient = _supabase;
 
-console.log("تم تفعيل اتصال Supabase بنجاح ✅");
+console.log("✅ تم إنشاء اتصال Supabase");
