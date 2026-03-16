@@ -38,6 +38,8 @@ async function supabaseFetch(endpoint, options = {}) {
  */
 async function loadShop() {
     try {
+        console.log("جاري بدء تحميل المتجر...");
+alert("دالة التحميل بدأت!"); // إذا ظهرت هذه الرسالة فالمشكلة في الاتصال بـ Supabase
         // إظهار حالة التحميل
         const container = document.getElementById('shop-container');
         if (container) {
