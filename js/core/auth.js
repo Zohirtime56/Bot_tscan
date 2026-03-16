@@ -1,74 +1,56 @@
 // js/core/auth.js
 
-/**
- * دالة التحقق الرئيسية: تربط بين تليجرام وقاعدة بيانات Supabase
- */
 async function authenticateUser() {
-    console.log("🔍 جاري فحص الهوية...");
-    
     const tg = window.Telegram.WebApp;
-    // التأكد من أن التطبيق يعمل داخل تليجرام
-    const user = tg.initDataUnsafe?.user;
+    
+    // إعطاء تليجرام ثانية واحدة للتأكد من الجاهزية
+    tg.ready();
 
+    let user = tg.initDataUnsafe?.user;
+
+    // --- وضع المطور (Developer Mode) ---
+    // إذا لم يجد مستخدم (لأنك تفتح من المتصفح)، سيستخدم حساب تجريبي
     if (!user) {
-        console.error("❌ فشل الاتصال بتليجرام. تأكد من فتح البوت من هاتفك.");
-        const nameElem = document.getElementById('user-name');
-        if (nameElem) nameElem.innerText = "يرجى الفتح من تليجرام";
-        return null;
+        console.warn("⚠️ لم يتم العثور على تليجرام، استخدام حساب تجريبي للمطور");
+        user = {
+            id: 12345678, // ايدي وهمي للتجربة
+            username: "Zohir_Dev",
+            first_name: "Zohir"
+        };
     }
+    // ------------------------------------
 
     try {
-        // 1. محاولة جلب بيانات المستخدم من جدول users
         let { data: dbUser, error } = await window.supabaseClient
             .from('users')
             .select('*')
             .eq('id', user.id)
             .single();
 
-        // 2. إذا كان المستخدم غير موجود (خطأ Single أو لا توجد بيانات)
         if (error || !dbUser) {
-            console.log("🆕 مستخدم جديد، جاري إنشاء حساب في الداتابيز...");
-            
-            // استخراج معرف الشخص الداعي إن وجد (Referral ID)
-            const startParam = tg.initDataUnsafe.start_param;
-            const referrerId = startParam ? parseInt(startParam) : null;
-
+            // تسجيل مستخدم جديد إذا لم يكن موجوداً
             const newUser = {
                 id: user.id,
                 username: user.username || user.first_name,
-                first_name: user.first_name,
-                referred_by: (referrerId && referrerId !== user.id) ? referrerId : null,
-                ram_balance: 0, // رصيدك من ZTX
-                z_balance: 0,   // العملة القابلة للسحب
-                mining_rate: 0.00000001, // السرعة الابتدائية
+                ram_balance: 0,
+                z_balance: 0,
+                mining_rate: 0.00000001,
                 last_claim_time: new Date().toISOString()
             };
 
-            const { data, error: insertError } = await window.supabaseClient
+            const { data, error: insErr } = await window.supabaseClient
                 .from('users')
                 .insert([newUser])
-                .select()
-                .single();
-
-            if (insertError) {
-                console.error("❌ خطأ أثناء تسجيل المستخدم الجديد:", insertError.message);
-                return null;
-            }
+                .select().single();
             
             dbUser = data;
-            console.log("✅ تم تسجيل المستخدم الجديد بنجاح!");
-        } else {
-            console.log("✅ تم تسجيل الدخول لمستخدم سابق:", dbUser.username);
         }
 
         return dbUser;
-
-    } catch (err) {
-        console.error("💥 خطأ غير متوقع في نظام التحقق:", err);
+    } catch (e) {
+        console.error("Error in Auth:", e);
         return null;
     }
 }
 
-// جعل الدالة متاحة عالمياً لملف app.js
 window.authenticateUser = authenticateUser;
-                
