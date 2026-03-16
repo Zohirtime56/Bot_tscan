@@ -80,7 +80,9 @@
     <footer class="app-footer">
       <nav class="bottom-nav">
         <div class="nav-item active" onclick="switchPage('home')">🏠<span>الرئيسية</span></div>
-        <div class="nav-item" onclick="switchPage('shop')">🛒<span>المتجر</span></div>
+        <div class="nav-item" onclick="switchPage('shop'); if(typeof loadShop === 'function') loadShop();">
+    🛒<span>المتجر</span>
+</div>
         <div class="nav-item" onclick="switchPage('tasks')">📋<span>المهام</span></div>
         <div class="nav-item" onclick="switchPage('wallet')">💰<span>المحفظة</span></div>
       </nav>
