@@ -1,23 +1,30 @@
 // js/modules/shop.js
 
-/**
- * جلب قائمة الأجهزة من Supabase وعرضها في المتجر
- */
 async function loadShopItems() {
     const shopContainer = document.getElementById('shop-items');
-    if (!shopContainer) return;
+    if (!shopContainer) {
+        console.error("❌ لم يتم العثور على حاوية المتجر (shop-items)");
+        return;
+    }
 
-    shopContainer.innerHTML = '<p style="text-align:center;">جاري جلب الأجهزة...</p>';
+    shopContainer.innerHTML = '<div class="loading">جاري فحص المتجر...</div>';
 
     try {
+        console.log("📡 محاولة جلب الأجهزة من جدول miners_shop...");
+        
         const { data: items, error } = await window.supabaseClient
             .from('miners_shop')
             .select('*');
 
-        if (error) throw error;
+        if (error) {
+            console.error("❌ خطأ من Supabase:", error.message);
+            throw error;
+        }
+
+        console.log("✅ البيانات المستلمة:", items);
 
         if (!items || items.length === 0) {
-            shopContainer.innerHTML = '<p style="text-align:center;">المتجر فارغ حالياً!</p>';
+            shopContainer.innerHTML = '<p style="text-align:center;">المتجر فارغ في قاعدة البيانات!</p>';
             return;
         }
 
@@ -25,17 +32,16 @@ async function loadShopItems() {
 
         items.forEach(item => {
             const itemCard = `
-                <div class="shop-card glass">
-                    <div class="item-image">
-                        <img src="${item.image_url || 'assets/miners/default.png'}" alt="${item.name}" style="width:60px;">
-                    </div>
+                <div class="shop-card glass" style="border: 1px solid #333; padding: 15px; margin-bottom: 10px; border-radius: 12px; background: rgba(255,255,255,0.05);">
                     <div class="item-details">
-                        <h4>${item.name}</h4>
-                        <p>${item.description}</p>
-                        <div class="item-stats">
-                            <span>🚀 +${item.power_boost} ZTX/s</span>
+                        <h4 style="color: #00ffcc; margin: 0;">${item.name}</h4>
+                        <p style="font-size: 12px; color: #ccc;">${item.description || 'لا يوجد وصف'}</p>
+                        <div class="item-stats" style="margin: 10px 0;">
+                            <span style="color: #ffcc00;">🚀 زيادة: ${item.power_boost} ZTX/s</span>
                         </div>
-                        <button class="buy-btn" onclick="buyMiner('${item.id}', ${item.price_ram}, ${item.power_boost})">
+                        <button class="buy-btn" 
+                                onclick="buyMiner('${item.id}', ${item.price_ram}, ${item.power_boost})"
+                                style="background: #00ffcc; color: #000; border: none; padding: 8px 15px; border-radius: 5px; width: 100%; font-weight: bold;">
                             شراء بـ ${item.price_ram} ZTX
                         </button>
                     </div>
@@ -43,63 +49,50 @@ async function loadShopItems() {
             `;
             shopContainer.innerHTML += itemCard;
         });
+
     } catch (err) {
-        console.error("خطأ في المتجر:", err.message);
-        shopContainer.innerHTML = '<p style="color:red;">فشل تحميل المتجر. تأكد من جدول miners_shop</p>';
+        shopContainer.innerHTML = `<p style="color:red; text-align:center;">خطأ في التحميل: ${err.message}</p>`;
     }
 }
 
-/**
- * منطق شراء الجهاز
- */
 async function buyMiner(itemId, price, boost) {
     const tg = window.Telegram.WebApp;
-    // التأكد من وجود بيانات المستخدم
     const user = tg.initDataUnsafe?.user;
-    if (!user) return;
 
-    // 1. التأكد من الرصيد الحالي (نستخدم window.currentZTX المعرف في mining.js)
-    if (window.currentZTX < price) {
-        tg.showAlert("رصيدك من ZTX غير كافٍ لشراء هذا الجهاز!");
+    if (!user) {
+        tg.showAlert("يرجى فتح البوت من تليجرام للشراء");
         return;
     }
 
-    tg.showConfirm(`هل أنت متأكد من شراء ${price} ZTX؟`, async (confirmed) => {
+    // فحص الرصيد من المتغير العالمي
+    if (window.currentZTX < price) {
+        tg.showAlert("رصيدك الحالي غير كافٍ!");
+        return;
+    }
+
+    tg.showConfirm(`تأكيد شراء الجهاز مقابل ${price} ZTX؟`, async (confirmed) => {
         if (confirmed) {
             try {
-                // 2. تحديث البيانات في Supabase
                 const { error } = await window.supabaseClient
                     .from('users')
                     .update({ 
                         ram_balance: window.currentZTX - price,
-                        mining_rate: window.miningRate + boost,
-                        last_claim_time: new Date().toISOString()
+                        mining_rate: (window.miningRate || 0.00000001) + boost
                     })
                     .eq('id', user.id);
 
                 if (error) throw error;
 
-                // 3. نجاح العملية
-                tg.HapticFeedback.notificationOccurred('success');
-                tg.showAlert("مبروك! تم تفعيل الجهاز وزيادة السرعة.");
-                
-                // تحديث القيم محلياً فوراً
+                tg.showAlert("تمت عملية الشراء بنجاح! ستزيد سرعة التعدين الآن.");
                 window.currentZTX -= price;
-                window.miningRate += boost;
-                
-                // تحديث الواجهة
-                loadShopItems();
                 if (window.updateUI) window.updateUI({ ram_balance: window.currentZTX });
-
-            } catch (err) {
-                console.error("خطأ شراء:", err);
-                tg.showAlert("حدث خطأ أثناء الشراء، تأكد من اتصال الإنترنت.");
+                loadShopItems(); // تحديث القائمة
+            } catch (e) {
+                tg.showAlert("فشل الشراء: " + e.message);
             }
         }
     });
 }
 
-// تصدير الدوال للخارج
 window.loadShopItems = loadShopItems;
 window.buyMiner = buyMiner;
-                        
