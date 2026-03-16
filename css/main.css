@@ -1,15 +1,77 @@
-/* تأثير توهج لعملة ZTX */
+/* css/main.css */
+
+/* خلفية التطبيق العامة */
+body {
+    background: #0e1217;
+    color: white;
+    font-family: 'Cairo', sans-serif;
+    margin: 0;
+    overflow-x: hidden;
+}
+
+/* الهيدر العلوي (الاسم والرصيد الذهبي) */
+.app-header {
+    display: flex;
+    justify-content: space-between;
+    padding: 15px;
+    background: rgba(255,255,255,0.02);
+}
+
+/* تصميم العداد (الرقم الأخضر الكبير) */
 #ram-balance {
-    font-family: 'Courier New', monospace;
-    color: #00ffcc; /* لون أخضر فسفوري سايبربانك */
-    text-shadow: 0 0 10px rgba(0, 255, 204, 0.5);
-    font-size: 2.5rem;
-}
-
-.pill.gold {
-    background: linear-gradient(45deg, #ffd700, #ffa500);
-    color: #000;
+    font-size: 3rem;
+    color: #00ffcc;
+    text-shadow: 0 0 15px rgba(0, 255, 204, 0.4);
+    text-align: center;
+    margin: 30px 0;
     font-weight: bold;
-    box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
 }
 
+/* القائمة السفلية (Navigation) */
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    display: flex;
+    justify-content: space-around;
+    background: #161b22;
+    padding: 10px 0;
+    border-top: 1px solid #30363d;
+    z-index: 100;
+}
+
+.nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-size: 11px;
+    color: #8b949e;
+}
+
+.nav-item.active {
+    color: #58a6ff;
+}
+
+/* زر التجميع (Claim) */
+.claim-btn {
+    background: linear-gradient(45deg, #00ffcc, #0099ff);
+    color: #000;
+    border: none;
+    padding: 15px 40px;
+    border-radius: 50px;
+    font-weight: bold;
+    font-size: 1.1rem;
+    width: 80%;
+    margin: 20px auto;
+    display: block;
+    box-shadow: 0 4px 15px rgba(0, 255, 204, 0.3);
+}
+
+/* إخفاء الصفحات غير النشطة */
+.page {
+    padding: 20px;
+    display: none;
+}
+.page.active {
+    display: block;
+    }
