@@ -16,7 +16,7 @@ async function testConnection() {
     try {
         console.log('اختبار الاتصال بـ Supabase...');
         
-        const response = await fetch(`${SUPABASE_CONFIG.url}/rest/v1/miners_shop?select=count`, {
+        const response = await fetch(`${SUPABASE_CONFIG.url}/rest/v1/minersshop?select=count`, {
             method: 'HEAD',
             headers: {
                 'apikey': SUPABASE_CONFIG.anonKey,
@@ -58,9 +58,9 @@ async function loadShop() {
         console.log('نتيجة اختبار الاتصال:', isConnected);
 
         // محاولة جلب البيانات
-        console.log('محاولة جلب البيانات من:', `${SUPABASE_CONFIG.url}/rest/v1/miners_shop`);
+        console.log('محاولة جلب البيانات من:', `${SUPABASE_CONFIG.url}/rest/v1/minersshop`);
         
-        const response = await fetch(`${SUPABASE_CONFIG.url}/rest/v1/miners_shop?select=*`, {
+        const response = await fetch(`${SUPABASE_CONFIG.url}/rest/v1/minersshop?select=*`, {
             method: 'GET',
             headers: {
                 'apikey': SUPABASE_CONFIG.anonKey,
