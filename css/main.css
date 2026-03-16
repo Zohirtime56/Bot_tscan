@@ -1,0 +1,15 @@
+/* تأثير توهج لعملة ZTX */
+#ram-balance {
+    font-family: 'Courier New', monospace;
+    color: #00ffcc; /* لون أخضر فسفوري سايبربانك */
+    text-shadow: 0 0 10px rgba(0, 255, 204, 0.5);
+    font-size: 2.5rem;
+}
+
+.pill.gold {
+    background: linear-gradient(45deg, #ffd700, #ffa500);
+    color: #000;
+    font-weight: bold;
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+}
+
