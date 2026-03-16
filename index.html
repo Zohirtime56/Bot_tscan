@@ -2,94 +2,96 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Cloud Mining Pro — واجهة متطورة</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>Zohir Mining Pro</title>
 
-  <!-- Telegram & Supabase -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-  <!-- ربط ملف الستايل الخارجي -->
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/animations.css" />
+  <link rel="stylesheet" href="css/responsive.css" />
 </head>
 <body>
 
   <div class="app-wrap">
     <header class="app-header">
-      <div class="left">
+      <div class="user-info">
         <h2 id="user-name">تحميل...</h2>
         <div class="status">التعدين: <span id="mining-state" class="active">نشط ●</span></div>
       </div>
-      <div class="right">
-        <button id="btn-leaderboard" class="icon-btn" title="لوحة المتصدرين">🏆</button>
-        <button id="btn-settings" class="icon-btn" title="إعدادات">⚙️</button>
+      <div class="wallet-pills">
+        <div class="pill">⚡ <span id="top-ram">0</span></div>
+        <div class="pill gold">🪙 <span id="top-z">0.00</span></div>
       </div>
     </header>
 
-    <main>
-      <section class="balance-card glass">
-        <div class="balance-top">
-          <p class="muted">الرصيد المتاح للسحب</p>
+    <main id="app-main">
+
+      <section id="page-home" class="page active">
+        <div class="balance-card glass">
+          <p class="muted">نقاط التعدين الحالية (RAM)</p>
           <div class="balance-row">
-            <h1 id="balance">0.00000000</h1>
-            <span class="currency">BTC</span>
+            <h1 id="ram-balance">0.00000000</h1>
           </div>
-          <div class="miner-row">
-            <div class="miner-icon">⚙️</div>
-            <div class="miner-text" id="miner-text">Mining • جاري التعدين</div>
-          </div>
-        </div>
-
-        <div class="progress-wrap">
-          <div class="progress-info">
-            <small id="level-text">مستوى 1 • EXP 0/100</small>
-            <small id="hash-text">128.5 TH/s</small>
-          </div>
-          <div class="progress-bar" id="exp-bar">
-            <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+          <div class="progress-wrap">
+            <div class="progress-info">
+              <small id="level-text">مستوى 1</small>
+              <small id="hash-text">128.5 TH/s</small>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill" id="progress-fill" style="width:20%"></div>
+            </div>
           </div>
         </div>
 
-        <div class="balance-actions">
-          <button id="btn-boost" class="main-btn">🚀 Boost 30s</button>
-          <button id="btn-daily" class="secondary-btn">🎁 مكافأة يومية</button>
+        <div class="mining-animation">
+           <img src="assets/backgrounds/robot-gif.gif" alt="Mining..." class="robot">
         </div>
+
+        <button class="claim-btn" onclick="claimMining()">تجميع الأرباح 📥</button>
       </section>
 
-      <section class="stats-grid">
-        <div class="stat-box">
-          <span>قوة الهاش</span>
-          <p id="hash-power">128.5 TH/s</p>
+      <section id="page-shop" class="page" style="display:none;">
+        <div class="section-header">
+          <h3>متجر الأجهزة 🛒</h3>
         </div>
-        <div class="stat-box">
-          <span>الربح/الساعة (تقديري)</span>
-          <p id="hourly-profit">0.00000 BTC</p>
-        </div>
-        <div class="stat-box">
-          <span>السرعة الحالية</span>
-          <p id="speed">1x</p>
-        </div>
-        <div class="stat-box">
-          <span>إحالاتك</span>
-          <p id="referrals">0</p>
-        </div>
+        <div id="shop-items" class="items-grid">
+          </div>
       </section>
 
-      <div class="actions-bottom">
-        <button class="withdraw-btn" id="btn-withdraw">سحب الأرباح 💳</button>
-      </div>
-
-      <section class="leaderboard glass" id="leaderboard" style="display:none;">
-        <h3>لوحة المتصدرين</h3>
-        <ol id="leader-list"></ol>
+      <section id="page-tasks" class="page" style="display:none;">
+        <h3>المهام اليومية 📋</h3>
+        <div id="tasks-list"></div>
       </section>
+
+      <section id="page-wallet" class="page" style="display:none;">
+        <div class="exchange-card glass">
+          <h3>تبادل RAM مقابل $Z</h3>
+          <input type="number" id="swap-input" placeholder="كمية RAM">
+          <button class="swap-btn" onclick="handleExchange()">استبدال الآن 🔄</button>
+        </div>
+        <button class="withdraw-btn" id="btn-withdraw">سحب العملات $Z 💳</button>
+      </section>
+
     </main>
 
     <footer class="app-footer">
-      <small>Cloud Mining Pro • واجهة عرض وهمية للتجربة</small>
+      <nav class="bottom-nav">
+        <div class="nav-item active" onclick="switchPage('home')">🏠<span>الرئيسية</span></div>
+        <div class="nav-item" onclick="switchPage('shop')">🛒<span>المتجر</span></div>
+        <div class="nav-item" onclick="switchPage('tasks')">📋<span>المهام</span></div>
+        <div class="nav-item" onclick="switchPage('wallet')">💰<span>المحفظة</span></div>
+      </nav>
     </footer>
   </div>
 
-  <script src="script.js"></script>
+  <script src="js/supabase/client.js"></script>
+  <script src="js/core/auth.js"></script>
+  <script src="js/modules/ui.js"></script>
+  <script src="js/modules/mining.js"></script>
+  <script src="js/core/app.js"></script>
+
 </body>
-                              </html>
+          </html>
+        
