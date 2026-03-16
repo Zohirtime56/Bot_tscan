@@ -1,431 +1,307 @@
-// shop.js - متجر التعدين المحسن لتطبيق Telegram Mini App
+// shop.js - متجر التعدين (محدث ومتوافق مع باقي المشروع)
 
-// التحقق من بيئة Telegram WebApp
-const telegram = window.Telegram?.WebApp;
+// تهيئة Supabase بنفس الطريقة المستخدمة في باقي الملفات
+const SUPABASE_URL = 'https://dwfzydrmtjsfpzpfzaxb.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR3Znp5ZHJtdGpzZnB6cGZ6YXhiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDIyMjY2NTIsImV4cCI6MjA1NzgwMjY1Mn0.rHjMDFI_6SclvQm5n7Fqy13THIZbA-SZ2-BD2v36t0E';
 
-// إعدادات Supabase - يجب وضع القيم الصحيحة هنا مباشرة للتأكد
-const SUPABASE_CONFIG = {
-    url: 'https://dwfzydrmtjsfpzpfzaxb.supabase.co', // تأكد من صحة هذا الرابط
-    anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR3Znp5ZHJtdGpzZnB6cGZ6YXhiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDIyMjY2NTIsImV4cCI6MjA1NzgwMjY1Mn0.rHjMDFI_6SclvQm5n7Fqy13THIZbA-SZ2-BD2v36t0E' // تأكد من صحة هذا المفتاح
-};
+// تهيئة عميل Supabase بنفس الطريقة المستخدمة في main.js
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-/**
- * دالة لاختبار الاتصال بقاعدة البيانات
- */
-async function testConnection() {
+// دالة تحميل المتجر (بنفس نمط دوال المشروع)
+window.loadShop = async function() {
     try {
-        console.log('اختبار الاتصال بـ Supabase...');
+        console.log('جاري تحميل المتجر...');
         
-        const response = await fetch(`${SUPABASE_CONFIG.url}/rest/v1/minersshop?select=count`, {
-            method: 'HEAD',
-            headers: {
-                'apikey': SUPABASE_CONFIG.anonKey,
-                'Authorization': `Bearer ${SUPABASE_CONFIG.anonKey}`
-            }
-        });
-        
-        console.log('حالة الاتصال:', response.status);
-        return response.ok;
-    } catch (error) {
-        console.error('فشل الاتصال:', error);
-        return false;
-    }
-}
+        // التحقق من وجود العنصر
+        const container = document.getElementById('shop-container');
+        if (!container) {
+            console.error('عنصر shop-container غير موجود');
+            return;
+        }
 
-/**
- * جلب جميع الأجهزة من جدول miners_shop
- */
-async function loadShop() {
-    const container = document.getElementById('shop-container');
-    
-    if (!container) {
-        console.error('❌ عنصر shop-container غير موجود');
-        return;
-    }
-
-    try {
-        // إظهار حالة التحميل
+        // عرض حالة التحميل
         container.innerHTML = `
-            <div class="loading-state">
-                <div class="spinner"></div>
-                <p>جاري تحميل الأجهزة...</p>
-                <small class="debug-info">محاولة الاتصال بقاعدة البيانات...</small>
+            <div class="loading-container">
+                <div class="loading-spinner"></div>
+                <p class="loading-text">جاري تحميل الأجهزة...</p>
             </div>
         `;
 
-        // اختبار الاتصال أولاً
-        const isConnected = await testConnection();
-        console.log('نتيجة اختبار الاتصال:', isConnected);
+        // جلب البيانات من Supabase (بنفس طريقة main.js)
+        const { data: miners, error } = await supabase
+            .from('minersshop')
+            .select('*')
+            .order('price_ram', { ascending: true });
 
-        // محاولة جلب البيانات
-        console.log('محاولة جلب البيانات من:', `${SUPABASE_CONFIG.url}/rest/v1/minersshop`);
-        
-        const response = await fetch(`${SUPABASE_CONFIG.url}/rest/v1/minersshop?select=*`, {
-            method: 'GET',
-            headers: {
-                'apikey': SUPABASE_CONFIG.anonKey,
-                'Authorization': `Bearer ${SUPABASE_CONFIG.anonKey}`,
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            }
-        });
-
-        console.log('حالة الاستجابة:', response.status);
-
-        if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`HTTP ${response.status}: ${errorText}`);
+        if (error) {
+            throw error;
         }
 
-        const miners = await response.json();
-        console.log('✅ تم جلب البيانات بنجاح:', miners);
+        console.log('تم جلب البيانات:', miners);
 
         if (!miners || miners.length === 0) {
             container.innerHTML = `
                 <div class="empty-state">
-                    <p>لا توجد أجهزة في المتجر حالياً</p>
-                    <small>يمكنك إضافة أجهزة من لوحة تحكم Supabase</small>
+                    <div class="empty-icon">📦</div>
+                    <h3 class="empty-title">لا توجد أجهزة متاحة</h3>
+                    <p class="empty-text">سيتم إضافة أجهزة قريباً</p>
                 </div>
             `;
             return;
         }
 
-        renderShop(miners);
+        // عرض الأجهزة
+        displayMiners(miners);
 
     } catch (error) {
-        console.error('❌ خطأ مفصل:', error);
+        console.error('خطأ في تحميل المتجر:', error.message);
         
-        // عرض رسالة خطأ مفصلة
-        container.innerHTML = `
-            <div class="error-state">
-                <div class="error-icon">⚠️</div>
-                <h3>عذراً، حدث خطأ في تحميل المتجر</h3>
-                <p class="error-details">${error.message}</p>
-                <div class="debug-box">
-                    <p><strong>معلومات للتصحيح:</strong></p>
-                    <ul>
-                        <li>رابط Supabase: ${SUPABASE_CONFIG.url}</li>
-                        <li>حالة الاتصال: ${await testConnection() ? '✅' : '❌'}</li>
-                        <li>بيئة التشغيل: ${telegram ? 'Telegram WebApp' : 'متصفح عادي'}</li>
-                    </ul>
-                </div>
-                <button onclick="location.reload()" class="retry-btn">
-                    إعادة تحميل الصفحة
-                </button>
-                <button onclick="window.loadShop()" class="retry-btn secondary">
-                    محاولة مرة أخرى
-                </button>
-            </div>
-        `;
-    }
-}
-
-/**
- * عرض الأجهزة في الصفحة
- */
-function renderShop(miners) {
-    const container = document.getElementById('shop-container');
-    
-    const shopHTML = `
-        <div class="shop-header">
-            <h2>🛒 متجر الأجهزة</h2>
-            <p>اختر جهاز التعدين المناسب لك</p>
-        </div>
-        <div class="shop-grid">
-            ${miners.map(miner => `
-                <div class="miner-card" data-id="${miner.id}">
-                    <div class="miner-badge">🔥 جديد</div>
-                    <div class="miner-icon">⛏️</div>
-                    <h3 class="miner-name">${escapeHtml(miner.name)}</h3>
-                    <p class="miner-description">${escapeHtml(miner.description || 'جهاز تعدين عالي الكفاءة')}</p>
-                    
-                    <div class="miner-stats">
-                        <div class="stat">
-                            <span class="stat-label">⚡ قوة التعدين</span>
-                            <span class="stat-value">${miner.power_boost} GH/s</span>
-                        </div>
-                        <div class="stat">
-                            <span class="stat-label">💾 السعر</span>
-                            <span class="stat-value price">${formatNumber(miner.price_ram)} RAM</span>
-                        </div>
-                    </div>
-                    
-                    <button class="buy-btn" onclick="buyMiner('${miner.id}')">
-                        شراء الآن
+        const container = document.getElementById('shop-container');
+        if (container) {
+            container.innerHTML = `
+                <div class="error-container">
+                    <div class="error-icon">⚠️</div>
+                    <h3 class="error-title">عذراً، حدث خطأ</h3>
+                    <p class="error-message">${error.message || 'فشل تحميل المتجر'}</p>
+                    <button class="retry-button" onclick="window.loadShop()">
+                        إعادة المحاولة
                     </button>
                 </div>
-            `).join('')}
-        </div>
-    `;
-
-    container.innerHTML = shopHTML;
-}
-
-/**
- * دوال مساعدة
- */
-function formatNumber(num) {
-    return new Intl.NumberFormat('ar-SA', {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-    }).format(num);
-}
-
-function escapeHtml(unsafe) {
-    if (!unsafe) return '';
-    return String(unsafe)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
-}
-
-async function buyMiner(minerId) {
-    try {
-        const btn = event?.target;
-        if (btn) {
-            btn.disabled = true;
-            btn.textContent = 'جاري الشراء...';
+            `;
         }
+    }
+};
 
-        // هنا منطق الشراء الفعلي
-        alert('تمت إضافة جهاز التعدين إلى محفظتك! (واجهة تجريبية)');
+// دالة عرض الأجهزة (مطابقة لتصميم المشروع)
+function displayMiners(miners) {
+    const container = document.getElementById('shop-container');
+    
+    let minersHTML = '<div class="miners-grid">';
+    
+    miners.forEach(miner => {
+        minersHTML += `
+            <div class="miner-card" onclick="buyMiner('${miner.id}')">
+                <div class="miner-card-header">
+                    <h3 class="miner-card-title">${escapeHtml(miner.name)}</h3>
+                    <span class="miner-card-badge">جديد</span>
+                </div>
+                <p class="miner-card-description">${escapeHtml(miner.description || 'جهاز تعدين عالي الأداء')}</p>
+                <div class="miner-card-stats">
+                    <div class="stat-item">
+                        <span class="stat-label">⚡ القوة</span>
+                        <span class="stat-value">${miner.power_boost} TH/s</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">💾 السعر</span>
+                        <span class="stat-value price">${formatNumber(miner.price_ram)} RAM</span>
+                    </div>
+                </div>
+                <button class="buy-miner-btn">شراء الجهاز</button>
+            </div>
+        `;
+    });
+    
+    minersHTML += '</div>';
+    container.innerHTML = minersHTML;
+}
+
+// دالة شراء الجهاز (مؤقتة للاختبار)
+window.buyMiner = async function(minerId) {
+    try {
+        console.log('شراء جهاز:', minerId);
+        
+        // هنا يمكن إضافة منطق الشراء لاحقاً
+        alert('تمت إضافة الجهاز إلى محفظتك! (خاصية قيد التطوير)');
         
     } catch (error) {
         console.error('خطأ في الشراء:', error);
         alert('حدث خطأ في عملية الشراء');
-    } finally {
-        const btn = event?.target;
-        if (btn) {
-            btn.disabled = false;
-            btn.textContent = 'شراء الآن';
-        }
     }
+};
+
+// دوال مساعدة
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
 }
 
-// إضافة الأنماط المحسنة
-function injectStyles() {
+function formatNumber(number) {
+    return new Intl.NumberFormat('ar-SA').format(number);
+}
+
+// إضافة الأنماط CSS للصفحة (بنفس تنسيق المشروع)
+function addShopStyles() {
     const style = document.createElement('style');
     style.textContent = `
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        }
-
-        body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 16px;
-        }
-
-        #shop-container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        .shop-header {
-            text-align: center;
-            color: white;
-            margin-bottom: 30px;
-            padding: 20px;
-        }
-
-        .shop-header h2 {
-            font-size: 2rem;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
-        }
-
-        .shop-grid {
+        .miners-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
             gap: 20px;
-            padding: 10px;
+            padding: 20px;
+            animation: fadeIn 0.5s ease;
         }
 
         .miner-card {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 20px;
-            padding: 25px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 15px;
+            padding: 20px;
+            color: white;
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
             position: relative;
-            transition: transform 0.3s, box-shadow 0.3s;
-            animation: fadeInUp 0.5s ease;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255,255,255,0.2);
+            overflow: hidden;
+        }
+
+        .miner-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1));
+            pointer-events: none;
         }
 
         .miner-card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
         }
 
-        .miner-badge {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            background: linear-gradient(135deg, #ff6b6b, #ff4757);
-            color: white;
-            padding: 5px 15px;
-            border-radius: 25px;
-            font-size: 0.8rem;
+        .miner-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+            padding-bottom: 10px;
+        }
+
+        .miner-card-title {
+            font-size: 1.3rem;
             font-weight: bold;
-            animation: pulse 2s infinite;
+            margin: 0;
         }
 
-        .miner-icon {
-            font-size: 3rem;
-            text-align: center;
-            margin: 10px 0;
+        .miner-card-badge {
+            background: rgba(255,255,255,0.2);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            border: 1px solid rgba(255,255,255,0.3);
         }
 
-        .miner-name {
-            font-size: 1.5rem;
-            color: #333;
-            margin: 15px 0 10px;
-            text-align: center;
+        .miner-card-description {
+            margin: 15px 0;
+            line-height: 1.5;
+            opacity: 0.9;
+            min-height: 60px;
         }
 
-        .miner-description {
-            color: #666;
-            text-align: center;
-            margin-bottom: 20px;
-            line-height: 1.6;
-            font-size: 0.95rem;
-        }
-
-        .miner-stats {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 15px;
+        .miner-card-stats {
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
             padding: 15px;
-            margin: 20px 0;
-            color: white;
+            margin: 15px 0;
+            backdrop-filter: blur(5px);
         }
 
-        .stat {
+        .stat-item {
             display: flex;
             justify-content: space-between;
             margin: 8px 0;
         }
 
         .stat-label {
-            opacity: 0.9;
+            opacity: 0.8;
         }
 
         .stat-value {
             font-weight: bold;
-            font-size: 1.1rem;
         }
 
         .stat-value.price {
             color: #ffd700;
+            font-size: 1.1rem;
         }
 
-        .buy-btn {
+        .buy-miner-btn {
             width: 100%;
-            padding: 15px;
-            background: linear-gradient(135deg, #00b09b, #96c93d);
-            color: white;
+            padding: 12px;
+            background: white;
+            color: #764ba2;
             border: none;
-            border-radius: 15px;
-            font-size: 1.1rem;
+            border-radius: 25px;
+            font-size: 1rem;
             font-weight: bold;
             cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
+            transition: all 0.3s ease;
+            margin-top: 10px;
         }
 
-        .buy-btn:hover {
+        .buy-miner-btn:hover {
+            background: #f0f0f0;
             transform: scale(1.02);
-            box-shadow: 0 5px 20px rgba(0,176,155,0.4);
         }
 
-        .buy-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .loading-state, .error-state, .empty-state {
+        .loading-container, .error-container, .empty-state {
             text-align: center;
-            padding: 40px;
-            background: rgba(255,255,255,0.95);
-            border-radius: 20px;
+            padding: 40px 20px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
             margin: 20px;
+            backdrop-filter: blur(10px);
         }
 
-        .spinner {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #667eea;
-            border-radius: 50%;
+        .loading-spinner {
             width: 50px;
             height: 50px;
+            border: 4px solid rgba(255,255,255,0.1);
+            border-top-color: #667eea;
+            border-radius: 50%;
             animation: spin 1s linear infinite;
-            margin: 20px auto;
+            margin: 0 auto 20px;
         }
 
-        .debug-box {
-            background: #f8f9fa;
-            border: 1px solid #dee2e6;
-            border-radius: 10px;
-            padding: 15px;
-            margin: 20px 0;
-            text-align: left;
-            font-family: monospace;
-            font-size: 0.9rem;
-        }
-
-        .debug-box ul {
-            list-style: none;
-            padding: 10px 0;
-        }
-
-        .debug-box li {
-            margin: 5px 0;
-        }
-
-        .retry-btn {
-            background: linear-gradient(135deg, #667eea, #764ba2);
+        .loading-text, .error-title, .empty-title {
             color: white;
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+        }
+
+        .error-message, .empty-text {
+            color: rgba(255,255,255,0.8);
+            margin-bottom: 20px;
+        }
+
+        .error-icon, .empty-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+
+        .retry-button {
+            background: white;
+            color: #764ba2;
             border: none;
             padding: 12px 30px;
             border-radius: 25px;
             font-size: 1rem;
             font-weight: bold;
             cursor: pointer;
-            margin: 5px;
-            transition: transform 0.2s;
+            transition: all 0.3s ease;
         }
 
-        .retry-btn.secondary {
-            background: linear-gradient(135deg, #95a5a6, #7f8c8d);
-        }
-
-        .retry-btn:hover {
+        .retry-button:hover {
             transform: scale(1.05);
-        }
-
-        .error-icon {
-            font-size: 3rem;
-            margin-bottom: 15px;
-        }
-
-        .error-details {
-            color: #e74c3c;
-            background: #fde8e8;
-            padding: 10px;
-            border-radius: 8px;
-            margin: 10px 0;
-            font-family: monospace;
+            box-shadow: 0 5px 20px rgba(255,255,255,0.2);
         }
 
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            to { transform: rotate(360deg); }
         }
 
-        @keyframes fadeInUp {
+        @keyframes fadeIn {
             from {
                 opacity: 0;
                 transform: translateY(20px);
@@ -436,18 +312,14 @@ function injectStyles() {
             }
         }
 
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-        }
-
         @media (max-width: 768px) {
-            .shop-grid {
+            .miners-grid {
                 grid-template-columns: 1fr;
+                padding: 10px;
             }
             
             .miner-card {
-                margin: 10px 0;
+                margin: 5px 0;
             }
         }
     `;
@@ -456,25 +328,15 @@ function injectStyles() {
 }
 
 // تهيئة الصفحة
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', function() {
     console.log('✅ تم تحميل shop.js');
+    addShopStyles();
     
-    // إضافة الأنماط
-    injectStyles();
-    
-    // توسيط Telegram WebApp إذا كان متاحاً
-    if (telegram) {
-        telegram.expand();
-        console.log('Telegram WebApp متاح:', telegram);
+    // تحميل المتجر إذا كان العنصر موجوداً
+    if (document.getElementById('shop-container')) {
+        window.loadShop();
     }
-    
-    // تحميل المتجر
-    setTimeout(loadShop, 500); // تأخير بسيط للتأكد من تحميل كل شيء
 });
 
 // للتصحيح من وحدة التحكم
-window.debugShop = {
-    testConnection,
-    loadShop,
-    config: SUPABASE_CONFIG
-};
+console.log('🛒 متجر التعدين جاهز للاستخدام');
