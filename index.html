@@ -1,0 +1,943 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#6366f1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>مفكرتي • مفكرة رقمية أنيقة</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- Marked.js for Markdown -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@300;400;500;600&amp;family=Inter:wght@300;400;500&amp;display=swap');
+        
+        body {
+            font-family: 'Noto Sans Arabic', 'Inter', system-ui, -apple-system, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        .note-card {
+            transition: all 0.2s cubic-bezier(0.4, 0.0, 0.2, 1);
+            touch-action: manipulation;
+        }
+        
+        .note-card:active {
+            transform: scale(0.985);
+        }
+        
+        .modal {
+            animation: modalPop 0.25s cubic-bezier(0.32, 0.72, 0, 1);
+        }
+        
+        @keyframes modalPop {
+            from { opacity: 0; transform: translateY(30px) scale(0.96); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        
+        .drawer {
+            animation: drawerSlide 0.3s ease forwards;
+        }
+        
+        .markdown-content h1, .markdown-content h2, .markdown-content h3 {
+            font-weight: 700;
+            margin-top: 0.75em;
+            margin-bottom: 0.25em;
+        }
+        .markdown-content h1 { font-size: 1.35em; }
+        .markdown-content h2 { font-size: 1.15em; }
+        .markdown-content h3 { font-size: 1.05em; }
+        .markdown-content ul, .markdown-content ol { padding-right: 1.25em; margin: 0.5em 0; }
+        .markdown-content li { margin: 0.15em 0; }
+        .markdown-content strong { font-weight: 700; }
+        .markdown-content em { font-style: italic; }
+        .markdown-content code {
+            background: #f1e7ff20;
+            padding: 0.1em 0.4em;
+            border-radius: 6px;
+            font-size: 0.9em;
+        }
+        .dark .markdown-content code { background: #33415540; }
+        
+        .category-badge {
+            font-size: 0.7rem;
+            padding: 0.1rem 0.55rem;
+            border-radius: 9999px;
+            font-weight: 600;
+            letter-spacing: -.3px;
+        }
+        
+        .sidebar-link {
+            transition: all 0.15s ease;
+        }
+        
+        .sidebar-link.active {
+            background-color: #6366f120;
+            color: #6366f1;
+            font-weight: 700;
+        }
+        .dark .sidebar-link.active { background-color: #6366f130; }
+        
+        .fab {
+            box-shadow: 0 10px 15px -3px rgb(99 102 241 / 0.3), 0 4px 6px -4px rgb(99 102 241 / 0.3);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .fab:active { transform: scale(0.92); }
+        
+        .note-grid {
+            scrollbar-width: thin;
+            scrollbar-color: #cbd5e1 #f8fafc;
+        }
+        .dark .note-grid { scrollbar-color: #475569 #1e2937; }
+        
+        .glass {
+            background: rgba(255,255,255,0.96);
+            backdrop-filter: blur(16px);
+        }
+        .dark .glass { background: rgba(15,23,42,0.96); }
+        
+        .mobile-bottom-nav {
+            box-shadow: 0 -4px 6px -1px rgb(0 0 0 / 0.05);
+        }
+        
+        .line-clamp-3 {
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        
+        .safe-area-bottom {
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+    </style>
+</head>
+<body class="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 min-h-screen pb-20 lg:pb-0">
+    
+    <!-- Top Header -->
+    <header class="sticky top-0 z-50 border-b border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl">
+        <div class="max-w-screen-2xl mx-auto px-4 sm:px-6">
+            <div class="flex items-center justify-between h-16">
+                
+                <!-- Logo + Mobile Menu -->
+                <div class="flex items-center gap-x-3">
+                    <!-- Mobile Hamburger -->
+                    <button onclick="toggleMobileDrawer()" 
+                            class="lg:hidden w-10 h-10 flex items-center justify-center text-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-2xl transition-colors">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
+                    
+                    <div class="flex items-center gap-x-3">
+                        <div class="w-9 h-9 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-md shadow-indigo-500/30">
+                            <i class="fa-solid fa-book text-white text-2xl"></i>
+                        </div>
+                        <div>
+                            <h1 class="text-2xl font-extrabold tracking-tighter">مفكرتي</h1>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Search (Desktop) -->
+                <div class="hidden md:block flex-1 max-w-md mx-6">
+                    <div class="relative">
+                        <input type="text" id="search-input" 
+                               placeholder="ابحث في ملاحظاتك..." 
+                               class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 focus:border-indigo-500 rounded-3xl py-2.5 pr-11 pl-5 text-sm outline-none transition-all">
+                        <i class="fa-solid fa-search absolute left-4 top-3 text-slate-400"></i>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="flex items-center gap-x-2">
+                    <!-- Dark Mode -->
+                    <button onclick="toggleDarkMode()" 
+                            class="w-10 h-10 flex items-center justify-center rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-800 text-xl transition-colors">
+                        <i class="fa-solid fa-moon dark:hidden text-slate-600"></i>
+                        <i class="fa-solid fa-sun hidden dark:block text-amber-400"></i>
+                    </button>
+
+                    <!-- Desktop New Note -->
+                    <button onclick="openAddNoteModal()" 
+                            class="hidden lg:flex items-center gap-x-2 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white px-5 py-2.5 rounded-3xl text-sm font-semibold shadow-lg shadow-indigo-500/30">
+                        <i class="fa-solid fa-plus"></i>
+                        <span>جديد</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="max-w-screen-2xl mx-auto flex">
+        
+        <!-- Desktop Sidebar -->
+        <aside class="hidden lg:block w-72 border-l border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 min-h-[calc(100vh-64px)] p-5">
+            <div class="sticky top-5">
+                <div class="flex items-center justify-between mb-3 px-2">
+                    <h3 class="font-bold text-base tracking-tight">التصنيفات</h3>
+                    <button onclick="showAddCategoryModal()" 
+                            class="text-indigo-600 hover:text-indigo-700 text-xs flex items-center gap-x-1 font-semibold">
+                        <i class="fa-solid fa-plus"></i> <span>جديد</span>
+                    </button>
+                </div>
+                
+                <div id="categories-list" class="space-y-0.5"></div>
+                
+                <div class="mt-8 pt-5 border-t border-slate-200 dark:border-slate-700 px-2">
+                    <div class="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-3">إحصائيات</div>
+                    <div class="grid grid-cols-2 gap-3 text-center">
+                        <div class="bg-slate-100 dark:bg-slate-800 rounded-2xl py-3">
+                            <div id="total-notes" class="text-3xl font-bold text-indigo-600">0</div>
+                            <div class="text-[10px] text-slate-500">ملاحظة</div>
+                        </div>
+                        <div class="bg-slate-100 dark:bg-slate-800 rounded-2xl py-3">
+                            <div id="pinned-notes" class="text-3xl font-bold text-amber-500">0</div>
+                            <div class="text-[10px] text-slate-500">مثبتة</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 px-4 sm:px-6 lg:px-8 pt-5 pb-24 lg:pb-8">
+            
+            <!-- Header Row -->
+            <div class="flex items-end justify-between mb-5">
+                <div>
+                    <h2 id="current-filter-title" class="text-2xl font-extrabold tracking-tight">كل الملاحظات</h2>
+                    <p id="notes-count" class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">0 ملاحظة</p>
+                </div>
+                
+                <div class="flex items-center gap-x-2">
+                    <select id="sort-select" onchange="renderNotes()" 
+                            class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm rounded-2xl px-3 py-2 focus:outline-none focus:border-indigo-500">
+                        <option value="newest">الأحدث</option>
+                        <option value="oldest">الأقدم</option>
+                        <option value="title">أبجدي</option>
+                    </select>
+                    
+                    <!-- Export Button -->
+                    <button onclick="exportToPDF()" 
+                            class="hidden sm:flex items-center gap-x-2 text-sm px-4 py-2 rounded-2xl border border-slate-200 dark:border-slate-700 hover:bg-white dark:hover:bg-slate-800 transition-colors">
+                        <i class="fa-solid fa-download text-xs"></i>
+                        <span class="hidden md:inline">تصدير PDF</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Notes Grid -->
+            <div id="notes-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4"></div>
+
+            <!-- Empty State -->
+            <div id="empty-state" class="hidden flex flex-col items-center justify-center py-16 text-center">
+                <div class="w-16 h-16 bg-slate-200 dark:bg-slate-800 rounded-full flex items-center justify-center mb-5">
+                    <i class="fa-solid fa-book text-3xl text-slate-400"></i>
+                </div>
+                <h3 class="font-bold text-xl mb-1">لا توجد ملاحظات</h3>
+                <p class="text-slate-500 text-sm max-w-[220px]">ابدأ بإضافة ملاحظتك الأولى</p>
+            </div>
+        </main>
+    </div>
+
+    <!-- Mobile Bottom Navigation -->
+    <nav class="lg:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-700 z-40 safe-area-bottom">
+        <div class="flex items-center justify-around h-16 px-2">
+            <button onclick="setFilter('all')" class="flex flex-col items-center justify-center w-14 text-xs font-medium text-slate-500 dark:text-slate-400 active:text-indigo-600">
+                <i class="fa-solid fa-layer-group text-lg mb-0.5"></i>
+                <span>الكل</span>
+            </button>
+            <button onclick="setFilter('pinned')" class="flex flex-col items-center justify-center w-14 text-xs font-medium text-slate-500 dark:text-slate-400 active:text-indigo-600">
+                <i class="fa-solid fa-thumbtack text-lg mb-0.5"></i>
+                <span>المثبتة</span>
+            </button>
+            <button onclick="openAddNoteModal()" 
+                    class="flex flex-col items-center justify-center -mt-5 w-14">
+                <div class="w-12 h-12 bg-indigo-600 rounded-full flex items-center justify-center shadow-xl shadow-indigo-500/40 text-white">
+                    <i class="fa-solid fa-plus text-xl"></i>
+                </div>
+            </button>
+            <button onclick="showCategoriesDrawer()" class="flex flex-col items-center justify-center w-14 text-xs font-medium text-slate-500 dark:text-slate-400 active:text-indigo-600">
+                <i class="fa-solid fa-folder text-lg mb-0.5"></i>
+                <span>التصنيفات</span>
+            </button>
+            <button onclick="toggleDarkMode()" class="flex flex-col items-center justify-center w-14 text-xs font-medium text-slate-500 dark:text-slate-400">
+                <i class="fa-solid fa-moon text-lg mb-0.5 dark:hidden"></i>
+                <i class="fa-solid fa-sun text-lg mb-0.5 hidden dark:block text-amber-400"></i>
+                <span>الوضع</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Floating Action Button (Desktop) -->
+    <button onclick="openAddNoteModal()" 
+            class="hidden lg:flex fixed bottom-8 right-8 w-14 h-14 items-center justify-center bg-indigo-600 hover:bg-indigo-700 text-white rounded-full shadow-2xl shadow-indigo-500/40 z-40 fab">
+        <i class="fa-solid fa-plus text-2xl"></i>
+    </button>
+
+    <!-- Note Modal -->
+    <div id="note-modal" onclick="if (event.target.id === 'note-modal') closeModal()" 
+         class="hidden fixed inset-0 bg-black/70 backdrop-blur-md z-[100] flex items-end lg:items-center justify-center p-0 lg:p-4">
+        
+        <div onclick="event.stopImmediatePropagation()" 
+             class="modal w-full lg:w-[620px] lg:rounded-3xl bg-white dark:bg-slate-900 rounded-t-3xl lg:rounded-b-3xl border border-slate-200 dark:border-slate-700 overflow-hidden max-h-[92vh] flex flex-col">
+            
+            <!-- Modal Header -->
+            <div class="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/80 dark:bg-slate-800/60">
+                <div class="flex items-center gap-x-3">
+                    <h3 id="modal-title" class="font-extrabold text-xl">ملاحظة جديدة</h3>
+                </div>
+                <div class="flex items-center gap-x-1">
+                    <button onclick="closeModal()" class="w-9 h-9 flex items-center justify-center text-3xl leading-none text-slate-400 hover:text-slate-600">×</button>
+                </div>
+            </div>
+
+            <div class="p-5 flex-1 overflow-auto space-y-5">
+                <!-- Title -->
+                <div>
+                    <input type="text" id="note-title" placeholder="عنوان الملاحظة" 
+                           class="w-full text-xl font-bold bg-transparent border-0 focus:ring-0 px-1 py-1 placeholder:text-slate-400">
+                </div>
+
+                <!-- Content + Markdown Preview -->
+                <div>
+                    <div class="flex items-center justify-between mb-1.5 px-1">
+                        <label class="text-xs font-semibold text-slate-500">المحتوى (يدعم Markdown)</label>
+                        <div id="char-count" class="text-[10px] font-mono text-slate-400">0 / 5000</div>
+                    </div>
+                    
+                    <textarea id="note-content" rows="9" 
+                              class="w-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-2xl p-4 text-[15px] leading-relaxed focus:outline-none focus:border-indigo-400 resize-y"
+                              placeholder="اكتب ملاحظتك هنا... يمكنك استخدام **نص عريض** أو *مائل* أو - قوائم"></textarea>
+                    
+                    <!-- Live Markdown Preview -->
+                    <div class="mt-3">
+                        <div class="flex items-center gap-x-2 text-xs font-semibold text-slate-500 mb-1 px-1">
+                            <i class="fa-solid fa-eye"></i>
+                            <span>معاينة</span>
+                        </div>
+                        <div id="markdown-preview" 
+                             class="markdown-content min-h-[70px] max-h-[160px] overflow-auto text-sm leading-relaxed bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 prose prose-sm dark:prose-invert">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Category + Pinned -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-xs font-semibold text-slate-500 block mb-1.5 px-1">التصنيف</label>
+                        <div class="flex gap-2">
+                            <select id="note-category" class="flex-1 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-2xl px-4 py-3 text-sm"></select>
+                            <button onclick="quickAddCategory()" class="px-4 rounded-2xl border text-sm font-medium flex items-center justify-center hover:bg-slate-50 dark:hover:bg-slate-800">
+                                <i class="fa-solid fa-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-end">
+                        <label class="flex items-center gap-x-3 cursor-pointer px-1">
+                            <input type="checkbox" id="note-pinned" class="w-5 h-5 accent-indigo-600">
+                            <div>
+                                <span class="font-semibold text-sm">تثبيت الملاحظة</span>
+                                <div class="text-[10px] text-slate-400">ستظهر في الأعلى دائمًا</div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="px-5 py-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 flex items-center justify-between gap-3">
+                <button onclick="deleteCurrentNote()" id="delete-btn"
+                        class="hidden px-5 py-2.5 text-red-600 hover:bg-red-50 dark:hover:bg-red-950 rounded-2xl text-sm font-semibold items-center gap-x-2 transition-colors">
+                    <i class="fa-solid fa-trash"></i> <span>حذف</span>
+                </button>
+                
+                <div class="flex-1 flex justify-end gap-x-3">
+                    <button onclick="closeModal()" class="px-6 py-2.5 text-sm font-semibold rounded-2xl border hover:bg-slate-100 dark:hover:bg-slate-800">إلغاء</button>
+                    <button onclick="saveNoteFromModal()" 
+                            class="px-7 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold rounded-2xl shadow">حفظ</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Categories Drawer -->
+    <div id="mobile-drawer" onclick="if (event.target.id === 'mobile-drawer') closeMobileDrawer()" 
+         class="hidden lg:hidden fixed inset-0 bg-black/60 z-[110]">
+        <div onclick="event.stopImmediatePropagation()" class="drawer absolute bottom-0 right-0 left-0 bg-white dark:bg-slate-900 rounded-t-3xl p-5 max-h-[75vh] overflow-auto">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="font-bold text-xl">التصنيفات</h3>
+                <button onclick="closeMobileDrawer()" class="text-3xl leading-none text-slate-400">×</button>
+            </div>
+            <div id="mobile-categories-list" class="space-y-1"></div>
+            
+            <button onclick="showAddCategoryModal(); closeMobileDrawer();" 
+                    class="mt-6 w-full py-3 border border-dashed border-slate-300 dark:border-slate-600 rounded-2xl text-sm font-semibold flex items-center justify-center gap-x-2">
+                <i class="fa-solid fa-plus"></i> إضافة تصنيف جديد
+            </button>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="hidden fixed bottom-20 lg:bottom-6 left-1/2 -translate-x-1/2 px-5 py-3 rounded-3xl shadow-xl text-sm font-medium z-[200] flex items-center gap-x-3"></div>
+
+    <script>
+        // ==================== CONFIG ====================
+        let notes = [];
+        let categories = ['عمل', 'شخصي', 'أفكار', 'دراسة', 'مشاريع'];
+        let currentFilter = 'all';
+        let currentNoteId = null;
+        let searchTerm = '';
+        let autoSaveTimeout = null;
+
+        function initializeTailwind() {
+            tailwind.config = {
+                darkMode: 'class',
+                theme: { extend: { fontFamily: { 'arabic': ['Noto Sans Arabic', 'system-ui', 'sans-serif'] } } }
+            };
+        }
+
+        // ==================== STORAGE ====================
+        function loadFromStorage() {
+            const savedNotes = localStorage.getItem('mufakara_notes_v2');
+            if (savedNotes) notes = JSON.parse(savedNotes);
+
+            const savedCats = localStorage.getItem('mufakara_categories');
+            if (savedCats) categories = JSON.parse(savedCats);
+
+            if (localStorage.getItem('mufakara_dark') === 'true') {
+                document.documentElement.classList.add('dark');
+            }
+        }
+
+        function saveToStorage() {
+            localStorage.setItem('mufakara_notes_v2', JSON.stringify(notes));
+            localStorage.setItem('mufakara_categories', JSON.stringify(categories));
+        }
+
+        // ==================== RENDER CATEGORIES ====================
+        function renderCategories() {
+            const container = document.getElementById('categories-list');
+            container.innerHTML = '';
+
+            // All
+            container.appendChild(createCategoryBtn('all', 'كل الملاحظات', 'fa-layer-group', notes.length));
+            // Pinned
+            const pinnedCount = notes.filter(n => n.pinned).length;
+            container.appendChild(createCategoryBtn('pinned', 'المثبتة', 'fa-thumbtack', pinnedCount));
+
+            categories.forEach(cat => {
+                const count = notes.filter(n => n.category === cat).length;
+                container.appendChild(createCategoryBtn(cat, cat, 'fa-folder', count));
+            });
+        }
+
+        function createCategoryBtn(value, label, icon, count) {
+            const btn = document.createElement('button');
+            btn.className = `sidebar-link w-full flex justify-between items-center px-4 py-[10px] rounded-2xl text-sm font-medium hover:bg-slate-100 dark:hover:bg-slate-800 ${currentFilter === value ? 'active' : ''}`;
+            
+            btn.innerHTML = `
+                <div class="flex items-center gap-x-3">
+                    <i class="fa-solid ${icon} w-4 text-center text-slate-400"></i>
+                    <span>${label}</span>
+                </div>
+                <span class="text-[10px] px-2 py-px rounded-full bg-slate-200 dark:bg-slate-700 font-mono">${count}</span>
+            `;
+            
+            btn.onclick = () => {
+                currentFilter = value;
+                document.getElementById('current-filter-title').innerHTML = label;
+                renderNotes();
+                renderCategories();
+                closeMobileDrawer();
+            };
+            return btn;
+        }
+
+        function setFilter(filter) {
+            currentFilter = filter;
+            if (filter === 'all') document.getElementById('current-filter-title').innerHTML = 'كل الملاحظات';
+            else if (filter === 'pinned') document.getElementById('current-filter-title').innerHTML = 'الملاحظات المثبتة';
+            renderNotes();
+        }
+
+        // ==================== HUMAN READABLE DATE ====================
+        function timeAgo(dateStr) {
+            const date = new Date(dateStr);
+            const seconds = Math.floor((new Date() - date) / 1000);
+            
+            if (seconds < 60) return 'الآن';
+            if (seconds < 3600) return `${Math.floor(seconds/60)} دقيقة`;
+            if (seconds < 86400) return `${Math.floor(seconds/3600)} ساعة`;
+            if (seconds < 172800) return 'أمس';
+            return date.toLocaleDateString('ar-EG', { month: 'short', day: 'numeric' });
+        }
+
+        // ==================== RENDER NOTES ====================
+        function renderNotes() {
+            const grid = document.getElementById('notes-grid');
+            const empty = document.getElementById('empty-state');
+            grid.innerHTML = '';
+
+            let filtered = [...notes];
+
+            // Filter
+            if (currentFilter === 'pinned') filtered = filtered.filter(n => n.pinned);
+            else if (currentFilter !== 'all') filtered = filtered.filter(n => n.category === currentFilter);
+
+            // Search
+            if (searchTerm) {
+                const t = searchTerm.toLowerCase();
+                filtered = filtered.filter(n => 
+                    n.title.toLowerCase().includes(t) || n.content.toLowerCase().includes(t)
+                );
+            }
+
+            // Sort
+            const sort = document.getElementById('sort-select').value;
+            if (sort === 'newest') filtered.sort((a,b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+            else if (sort === 'oldest') filtered.sort((a,b) => new Date(a.updatedAt) - new Date(b.updatedAt));
+            else if (sort === 'title') filtered.sort((a,b) => a.title.localeCompare(b.title, 'ar'));
+
+            // Stats
+            document.getElementById('total-notes').textContent = notes.length;
+            document.getElementById('pinned-notes').textContent = notes.filter(n => n.pinned).length;
+            document.getElementById('notes-count').textContent = `${filtered.length} ملاحظة`;
+
+            if (filtered.length === 0) {
+                grid.classList.add('hidden');
+                empty.classList.remove('hidden');
+                return;
+            }
+            grid.classList.remove('hidden');
+            empty.classList.add('hidden');
+
+            filtered.forEach(note => {
+                const card = document.createElement('div');
+                card.className = `note-card bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-3xl p-4 flex flex-col h-full cursor-pointer active:scale-[0.985]`;
+                
+                const previewText = note.content.length > 95 ? note.content.substring(0, 95) + '...' : (note.content || 'لا يوجد محتوى');
+                
+                // Simple markdown preview for card
+                let previewHTML = marked.parse(previewText).replace(/<[^>]*>/g, '').substring(0, 110);
+
+                card.innerHTML = `
+                    <div class="flex-1">
+                        <div class="flex justify-between mb-2.5">
+                            <div class="flex items-start gap-x-2 flex-1 pr-1">
+                                ${note.pinned ? `<i class="fa-solid fa-thumbtack text-amber-500 mt-1 text-sm"></i>` : ''}
+                                <h3 class="font-extrabold text-[15.5px] leading-snug line-clamp-2">${note.title || 'بدون عنوان'}</h3>
+                            </div>
+                            
+                            <div class="flex gap-x-px opacity-70">
+                                <button onclick="event.stopImmediatePropagation(); togglePin('${note.id}')" class="w-8 h-8 flex items-center justify-center text-slate-400 active:text-amber-500">
+                                    <i class="fa-solid fa-thumbtack text-xs"></i>
+                                </button>
+                                <button onclick="event.stopImmediatePropagation(); editNote('${note.id}')" class="w-8 h-8 flex items-center justify-center text-slate-400 active:text-indigo-500">
+                                    <i class="fa-solid fa-edit text-xs"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="text-slate-600 dark:text-slate-300 text-sm leading-relaxed line-clamp-3 mb-4">${previewHTML}</div>
+                    </div>
+
+                    <div class="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-slate-700 text-xs">
+                        <span class="category-badge ${getCategoryColor(note.category)}">${note.category}</span>
+                        <span class="text-slate-400 font-mono">${timeAgo(note.updatedAt)}</span>
+                    </div>
+                `;
+                
+                card.onclick = () => editNote(note.id);
+                grid.appendChild(card);
+            });
+        }
+
+        function getCategoryColor(cat) {
+            const map = {
+                'عمل': 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300',
+                'شخصي': 'bg-purple-100 text-purple-700 dark:bg-purple-900/50 dark:text-purple-300',
+                'أفكار': 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300',
+                'دراسة': 'bg-orange-100 text-orange-700 dark:bg-orange-900/50 dark:text-orange-300',
+                'مشاريع': 'bg-pink-100 text-pink-700 dark:bg-pink-900/50 dark:text-pink-300'
+            };
+            return map[cat] || 'bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-300';
+        }
+
+        // ==================== MODAL ====================
+        function openAddNoteModal(template = null) {
+            currentNoteId = null;
+            document.getElementById('modal-title').textContent = 'ملاحظة جديدة';
+            document.getElementById('note-title').value = template ? template.title : '';
+            document.getElementById('note-content').value = template ? template.content : '';
+            document.getElementById('note-pinned').checked = false;
+            document.getElementById('delete-btn').classList.add('hidden');
+
+            populateCategorySelect();
+            setupMarkdownLivePreview();
+            setupCharCounter();
+            
+            document.getElementById('note-modal').classList.remove('hidden');
+            document.getElementById('note-modal').classList.add('flex');
+            
+            setTimeout(() => document.getElementById('note-title').focus(), 350);
+        }
+
+        function editNote(id) {
+            const note = notes.find(n => n.id === id);
+            if (!note) return;
+
+            currentNoteId = id;
+            document.getElementById('modal-title').textContent = 'تعديل الملاحظة';
+            document.getElementById('note-title').value = note.title;
+            document.getElementById('note-content').value = note.content;
+            document.getElementById('note-pinned').checked = note.pinned || false;
+            document.getElementById('delete-btn').classList.remove('hidden');
+            document.getElementById('delete-btn').onclick = () => deleteNote(id);
+
+            populateCategorySelect(note.category);
+            setupMarkdownLivePreview();
+            setupCharCounter();
+            
+            document.getElementById('note-modal').classList.remove('hidden');
+            document.getElementById('note-modal').classList.add('flex');
+        }
+
+        function populateCategorySelect(selected = null) {
+            const sel = document.getElementById('note-category');
+            sel.innerHTML = '';
+            categories.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c; opt.textContent = c;
+                if (c === selected) opt.selected = true;
+                sel.appendChild(opt);
+            });
+        }
+
+        function quickAddCategory() {
+            const name = prompt('اسم التصنيف الجديد:');
+            if (!name || !name.trim()) return;
+            const trimmed = name.trim();
+            if (!categories.includes(trimmed)) {
+                categories.push(trimmed);
+                saveToStorage();
+                renderCategories();
+                populateCategorySelect(trimmed);
+            }
+        }
+
+        function setupMarkdownLivePreview() {
+            const textarea = document.getElementById('note-content');
+            const preview = document.getElementById('markdown-preview');
+            
+            const updatePreview = () => {
+                if (!textarea.value.trim()) {
+                    preview.innerHTML = '<span class="text-slate-400 text-xs">المعاينة ستظهر هنا...</span>';
+                    return;
+                }
+                preview.innerHTML = marked.parse(textarea.value);
+            };
+            
+            textarea.oninput = () => {
+                updatePreview();
+                // Auto save debounce
+                clearTimeout(autoSaveTimeout);
+                autoSaveTimeout = setTimeout(() => {
+                    if (currentNoteId) autoSaveNote();
+                }, 1200);
+            };
+            
+            // Initial
+            updatePreview();
+        }
+
+        function setupCharCounter() {
+            const ta = document.getElementById('note-content');
+            const counter = document.getElementById('char-count');
+            
+            const update = () => {
+                const len = ta.value.length;
+                counter.textContent = `${len} / 5000`;
+                counter.style.color = len > 4500 ? '#ef4444' : '';
+            };
+            
+            ta.oninput = () => {
+                update();
+            };
+            update();
+        }
+
+        function autoSaveNote() {
+            if (!currentNoteId) return;
+            const title = document.getElementById('note-title').value.trim();
+            const content = document.getElementById('note-content').value.trim();
+            const cat = document.getElementById('note-category').value;
+            const pinned = document.getElementById('note-pinned').checked;
+
+            const idx = notes.findIndex(n => n.id === currentNoteId);
+            if (idx === -1) return;
+
+            notes[idx].title = title || 'بدون عنوان';
+            notes[idx].content = content;
+            notes[idx].category = cat;
+            notes[idx].pinned = pinned;
+            notes[idx].updatedAt = new Date().toISOString();
+
+            saveToStorage();
+            renderNotes();
+            renderCategories();
+            
+            showToast('تم الحفظ التلقائي', false, 900);
+        }
+
+        function saveNoteFromModal() {
+            const title = document.getElementById('note-title').value.trim();
+            const content = document.getElementById('note-content').value.trim();
+            const category = document.getElementById('note-category').value;
+            const pinned = document.getElementById('note-pinned').checked;
+
+            if (!title && !content) {
+                showToast('أدخل عنوانًا أو محتوى', true);
+                return;
+            }
+
+            const now = new Date().toISOString();
+
+            if (currentNoteId) {
+                const idx = notes.findIndex(n => n.id === currentNoteId);
+                notes[idx].title = title || 'بدون عنوان';
+                notes[idx].content = content;
+                notes[idx].category = category;
+                notes[idx].pinned = pinned;
+                notes[idx].updatedAt = now;
+            } else {
+                notes.unshift({
+                    id: 'n_' + Date.now(),
+                    title: title || 'بدون عنوان',
+                    content,
+                    category,
+                    pinned,
+                    createdAt: now,
+                    updatedAt: now
+                });
+            }
+
+            saveToStorage();
+            closeModal();
+            renderNotes();
+            renderCategories();
+            showToast(currentNoteId ? 'تم تحديث الملاحظة' : 'تمت إضافة الملاحظة بنجاح');
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('note-modal');
+            modal.classList.remove('flex');
+            modal.classList.add('hidden');
+            currentNoteId = null;
+            clearTimeout(autoSaveTimeout);
+        }
+
+        function deleteNote(id) {
+            if (!confirm('هل تريد حذف هذه الملاحظة نهائيًا؟')) return;
+            notes = notes.filter(n => n.id !== id);
+            saveToStorage();
+            closeModal();
+            renderNotes();
+            renderCategories();
+            showToast('تم حذف الملاحظة');
+        }
+
+        function deleteCurrentNote() {
+            if (currentNoteId) deleteNote(currentNoteId);
+        }
+
+        function togglePin(id) {
+            const note = notes.find(n => n.id === id);
+            if (!note) return;
+            note.pinned = !note.pinned;
+            note.updatedAt = new Date().toISOString();
+            saveToStorage();
+            renderNotes();
+            renderCategories();
+        }
+
+        // ==================== MOBILE DRAWER ====================
+        function toggleMobileDrawer() {
+            const drawer = document.getElementById('mobile-drawer');
+            drawer.classList.toggle('hidden');
+            if (!drawer.classList.contains('hidden')) {
+                renderMobileCategories();
+            }
+        }
+        
+        function closeMobileDrawer() {
+            document.getElementById('mobile-drawer').classList.add('hidden');
+        }
+
+        function renderMobileCategories() {
+            const container = document.getElementById('mobile-categories-list');
+            container.innerHTML = '';
+            
+            const all = createMobileCatBtn('all', 'كل الملاحظات', notes.length);
+            container.appendChild(all);
+            
+            const pinned = createMobileCatBtn('pinned', 'المثبتة فقط', notes.filter(n=>n.pinned).length);
+            container.appendChild(pinned);
+
+            categories.forEach(cat => {
+                container.appendChild(createMobileCatBtn(cat, cat, notes.filter(n=>n.category===cat).length));
+            });
+        }
+
+        function createMobileCatBtn(value, label, count) {
+            const btn = document.createElement('button');
+            btn.className = `w-full flex justify-between px-4 py-3.5 text-sm font-medium rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-800 ${currentFilter === value ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600' : ''}`;
+            btn.innerHTML = `<span>${label}</span> <span class="text-xs px-2.5 py-0.5 rounded-full bg-slate-200 dark:bg-slate-700">${count}</span>`;
+            btn.onclick = () => {
+                currentFilter = value;
+                document.getElementById('current-filter-title').innerHTML = label;
+                renderNotes();
+                closeMobileDrawer();
+            };
+            return btn;
+        }
+
+        function showCategoriesDrawer() {
+            const drawer = document.getElementById('mobile-drawer');
+            drawer.classList.remove('hidden');
+            renderMobileCategories();
+        }
+
+        // ==================== EXPORT TO PDF ====================
+        function exportToPDF() {
+            const printWindow = window.open('', '_blank');
+            let html = `<html dir="rtl"><head><title>مفكرتي - تصدير</title><style>body{font-family: system-ui, sans-serif; padding:30px; line-height:1.7; max-width:800px; margin:auto} h1{color:#4338ca; font-size:28px} .note{margin-bottom:30px; border-bottom:1px solid #e2e8f0; padding-bottom:20px} .meta{color:#64748b; font-size:13px}</style></head><body>`;
+            html += `<h1>مفكرتي</h1><p class="meta">تاريخ التصدير: ${new Date().toLocaleDateString('ar-EG')} • ${notes.length} ملاحظة</p><hr style="margin:20px 0">`;
+            
+            let filtered = notes;
+            if (currentFilter !== 'all') filtered = notes.filter(n => currentFilter === 'pinned' ? n.pinned : n.category === currentFilter);
+            if (searchTerm) {
+                const t = searchTerm.toLowerCase();
+                filtered = filtered.filter(n => n.title.toLowerCase().includes(t) || n.content.toLowerCase().includes(t));
+            }
+            
+            filtered.forEach(n => {
+                const date = new Date(n.updatedAt).toLocaleDateString('ar-EG');
+                html += `<div class="note"><h3 style="margin:0 0 6px 0; font-size:18px">${n.title}</h3><div class="meta">${n.category} • ${date} ${n.pinned ? '📌' : ''}</div><div style="white-space:pre-wrap; margin-top:10px; color:#334155">${n.content}</div></div>`;
+            });
+            html += `<p style="text-align:center; color:#94a3b8; font-size:12px; margin-top:40px">تم التصدير من مفكرتي</p></body></html>`;
+            printWindow.document.write(html);
+            printWindow.document.close();
+            setTimeout(() => { printWindow.print(); }, 650);
+        }
+
+        // ==================== TOAST ====================
+        function showToast(msg, isError = false, duration = 2400) {
+            const toast = document.getElementById('toast');
+            toast.innerHTML = `
+                <div class="flex items-center gap-x-3 ${isError ? 'text-red-100' : ''}">
+                    <i class="fa-solid ${isError ? 'fa-exclamation-circle' : 'fa-check-circle'}"></i>
+                    <span>${msg}</span>
+                </div>
+            `;
+            toast.className = `fixed bottom-20 lg:bottom-6 left-1/2 -translate-x-1/2 px-5 py-3 rounded-3xl shadow-xl text-sm font-medium z-[200] flex items-center gap-x-3 ${isError ? 'bg-red-600 text-white' : 'bg-slate-900 dark:bg-white dark:text-slate-900 text-white'}`;
+            toast.style.display = 'flex';
+
+            setTimeout(() => {
+                toast.style.transition = 'all .25s ease';
+                toast.style.opacity = '0';
+                setTimeout(() => {
+                    toast.style.opacity = '1';
+                    toast.style.transition = '';
+                    toast.style.display = 'none';
+                }, 200);
+            }, duration);
+        }
+
+        // ==================== DARK MODE ====================
+        function toggleDarkMode() {
+            const isDark = document.documentElement.classList.toggle('dark');
+            localStorage.setItem('mufakara_dark', isDark);
+        }
+
+        // ==================== SEARCH ====================
+        function setupSearch() {
+            const input = document.getElementById('search-input');
+            input.addEventListener('input', () => {
+                searchTerm = input.value;
+                renderNotes();
+            });
+            
+            document.addEventListener('keydown', e => {
+                if ((e.ctrlKey || e.metaKey) && e.key === '/') {
+                    e.preventDefault();
+                    input.focus();
+                }
+                if (e.key.toLowerCase() === 'n' && document.activeElement.tagName === 'BODY') {
+                    e.preventDefault();
+                    openAddNoteModal();
+                }
+            });
+        }
+
+        // ==================== INITIAL DATA ====================
+        function seedInitialDataIfEmpty() {
+            if (notes.length > 0) return;
+            
+            const now = new Date();
+            notes = [
+                {
+                    id: 'n1', title: 'أفكار لتطبيق جديد', content: 'فكرة تطبيق **مفكرة ذكية** تدعم **Markdown** وتتعرف على الصوت.\n\n- دعم اللغة العربية\n- وضع ليلي جميل\n- تصدير PDF',
+                    category: 'مشاريع', pinned: true, createdAt: now.toISOString(), updatedAt: now.toISOString()
+                },
+                {
+                    id: 'n2', title: 'اجتماع الفريق الأسبوعي', content: 'مناقشة أهداف الربع القادم وتوزيع المهام على الأعضاء.',
+                    category: 'عمل', pinned: false, createdAt: new Date(now - 86400000*1).toISOString(), updatedAt: new Date(now - 3600000).toISOString()
+                },
+                {
+                    id: 'n3', title: 'كتاب العادات الذرية', content: 'ابدأ بقراءة **20 صفحة يومياً**.\nالقاعدة الذهبية: تحسن 1% يومياً = 37 ضعف في السنة.',
+                    category: 'شخصي', pinned: false, createdAt: new Date(now - 86400000*4).toISOString(), updatedAt: new Date(now - 86400000*2).toISOString()
+                }
+            ];
+            saveToStorage();
+        }
+
+        // ==================== INIT ====================
+        function initializeApp() {
+            initializeTailwind();
+            loadFromStorage();
+            seedInitialDataIfEmpty();
+
+            renderCategories();
+            renderNotes();
+
+            setupSearch();
+
+            document.getElementById('sort-select').addEventListener('change', renderNotes);
+
+            if (!localStorage.getItem('mufakara_welcomed_v2')) {
+                setTimeout(() => {
+                    showToast('مرحباً! اضغط على زر + لإضافة ملاحظة جديدة', false, 3200);
+                    localStorage.setItem('mufakara_welcomed_v2', 'true');
+                }, 1400);
+            }
+
+            if (window.marked) {
+                marked.setOptions({ breaks: true, gfm: true });
+            }
+
+            console.log('%c[مفكرتي v2] التطبيق جاهز ومحسّن للهواتف ✓', 'color:#22c55e');
+        }
+
+        window.onload = initializeApp;
+    </script>
+</body>
+</html>
