@@ -1,0 +1,12 @@
+{
+  "name": "google-play-points-bot",
+  "version": "1.0.0",
+  "description": "Google Play Points Telegram Bot",
+  "main": "bot1.js",
+  "scripts": {
+    "start": "node bot1.js"
+  },
+  "dependencies": {
+    "node-telegram-bot-api": "^0.66.0"
+  }
+}
