@@ -1,12 +1,12 @@
 {
-  "name": "google-play-points-bot",
+  "name": "gmail-box-bot",
   "version": "1.0.0",
-  "description": "Google Play Points Telegram Bot",
+  "description": "Telegram Bot for Gmail and Play Points",
   "main": "bot1.js",
   "scripts": {
     "start": "node bot1.js"
   },
   "dependencies": {
-    "node-telegram-bot-api": "^0.66.0"
+    "grammy": "^1.30.0"
   }
 }
